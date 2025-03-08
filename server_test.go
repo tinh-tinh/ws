@@ -10,7 +10,7 @@ import (
 )
 
 func TestWebsocket(t *testing.T) {
-	http.Handle("/ws", websocket.Handler(ws.Handler))
+	http.Handle("/ws", websocket.Handler(ws.DefaultHandler))
 	log.Println("Chat server started on :8080")
 	go http.ListenAndServe(":8080", nil)
 

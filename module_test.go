@@ -12,7 +12,9 @@ import (
 func Test_Module(t *testing.T) {
 	appModule := func() core.Module {
 		appM := core.NewModule(core.NewModuleOptions{
-			Imports: []core.Modules{ws.Register()},
+			Imports: []core.Modules{ws.Register(ws.Options{
+				Prefix: "ws",
+			})},
 		})
 
 		return appM

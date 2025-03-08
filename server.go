@@ -19,7 +19,7 @@ type Room struct {
 
 var rooms = make(map[string]*Room) // Map of rooms by room name
 
-func Handler(conn *websocket.Conn) {
+func DefaultHandler(conn *websocket.Conn) {
 	defer conn.Close()
 	// Read the user and room
 	var user, room string
