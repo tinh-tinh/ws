@@ -1,49 +1,59 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
-	"os"
-	"strings"
+	"log"
+	"time"
 
-	"github.com/tinh-tinh/ws"
+	"github.com/gorilla/websocket"
 )
 
 func main() {
-	client := ws.NewClient("ws://localhost:8080/ws", "", "http://localhost/")
-	defer client.Conn.Close()
-	// Ask for username
-	reader := bufio.NewReader(os.Stdin)
-	fmt.Print("Enter your username: ")
-	username, _ := reader.ReadString('\n')
-	username = strings.TrimSpace(username)
+	// Connect to the WebSocket server
+	url := "ws://localhost:8080/ws"
+	conn, _, err := websocket.DefaultDialer.Dial(url, nil)
+	if err != nil {
+		log.Fatal("Dial error:", err)
+	}
+	defer conn.Close()
 
-	// Ask for room to join
-	fmt.Print("Enter the room you want to join: ")
-	room, _ := reader.ReadString('\n')
-	room = strings.TrimSpace(room)
+	// Send a message to the server
+	err = conn.WriteMessage(websocket.TextMessage, []byte("Hello from Go client!"))
+	if err != nil {
+		log.Println("Write error:", err)
+		return
+	}
 
-	client.Init(username).JoinRoom(room)
+	// Read a message from the server
+	_, message, err := conn.ReadMessage()
+	if err != nil {
+		log.Println("Read error:", err)
+		return
+	}
+	fmt.Printf("Received: %s\n", message)
 
-	go client.Lisen()
+	// Optional: Keep the connection open and listen for more messages
+	go func() {
+		for {
+			_, msg, err := conn.ReadMessage()
+			if err != nil {
+				log.Println("Read error:", err)
+				return
+			}
+			fmt.Println("Server:", string(msg))
+		}
+	}()
 
-	// Read user input and send messages
-	for {
-		fmt.Print("You: ")
-		text, _ := reader.ReadString('\n')
-		text = strings.TrimSpace(text)
-
-		if text == "exit" {
-			fmt.Println("Exiting chat...")
+	// Send more messages in a loop
+	for i := 1; i <= 3; i++ {
+		time.Sleep(1 * time.Second)
+		text := fmt.Sprintf("Ping %d", i)
+		err := conn.WriteMessage(websocket.TextMessage, []byte(text))
+		if err != nil {
+			log.Println("Write error:", err)
 			break
 		}
-
-		msg := ws.Message{
-			User: username,
-			Text: text,
-			Room: room,
-		}
-
-		client.Send(msg)
 	}
+
+	time.Sleep(2 * time.Second)
 }
