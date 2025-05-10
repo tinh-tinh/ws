@@ -6,8 +6,9 @@ import (
 
 const GATEWAY core.Provide = "WS_GATEWAY"
 
-func Registry(config Config) core.Modules {
+func Registry(configs ...Config) core.Modules {
 	return func(module core.Module) core.Module {
+		config := ParseConfig(configs...)
 		sub := module.New(core.NewModuleOptions{})
 		sub.NewProvider(core.ProviderOptions{
 			Name:  GATEWAY,

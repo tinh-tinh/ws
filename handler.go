@@ -3,6 +3,7 @@ package ws
 import (
 	"fmt"
 	"net/http"
+	"slices"
 
 	"github.com/tinh-tinh/tinhtinh/v2/core"
 )
@@ -27,11 +28,33 @@ func initHandler(module core.Module) core.Controller {
 			// Read message from client
 			messageType, msg, err := conn.ReadMessage()
 			if err != nil {
-				fmt.Println("Read error:", err)
+				gateway.ErrorHandler(err)
 				break
 			}
 
-			fmt.Printf("Received: %s\n", msg)
+			// Parse data
+			var message Message
+			err = gateway.Deserializer(msg, &message)
+			if err != nil {
+				gateway.ErrorHandler(err)
+				break
+			}
+
+			// Find Event
+			subscriberIdx := slices.IndexFunc(gateway.events, func(e *EventFnc) bool {
+				return e.Event == message.Event
+			})
+			if subscriberIdx == -1 {
+				continue
+			}
+
+			// Handler
+			ctx := NewCtx(messageType, message, *gateway)
+			err = gateway.events[subscriberIdx].Handler(ctx)
+			if err != nil {
+				gateway.ErrorHandler(err)
+				break
+			}
 
 			// Echo message back to client
 			err = conn.WriteMessage(messageType, msg)

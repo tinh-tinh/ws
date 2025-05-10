@@ -1,17 +1,23 @@
 package ws
 
-type Ctx interface{}
+type Ctx interface {
+	GetMessage() Message
+}
 
 type DefaultCtx struct {
 	messageType int
-	data        []byte
-	gateway     Gateway
+	message     Message
+	config      Config
 }
 
-func NewCtx(messageType int, data []byte, gateway Gateway) Ctx {
+func NewCtx(messageType int, message Message, config Config) Ctx {
 	return &DefaultCtx{
 		messageType: messageType,
-		data:        data,
-		gateway:     gateway,
+		message:     message,
+		config:      config,
 	}
+}
+
+func (c *DefaultCtx) GetMessage() Message {
+	return c.message
 }

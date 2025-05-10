@@ -18,6 +18,7 @@ func Test_Ws(t *testing.T) {
 		handler := ws.NewHandler(module)
 
 		handler.SubscribeMessage("on-ack", func(ctx ws.Ctx) error {
+			fmt.Println(ctx.GetMessage())
 			return nil
 		})
 
@@ -46,7 +47,6 @@ func Test_Ws(t *testing.T) {
 	defer testServer.Close()
 
 	wsUrl := strings.ReplaceAll(testServer.URL, "http", "ws") + "/ws/"
-	fmt.Println(wsUrl)
 	conn, _, err := websocket.DefaultDialer.Dial(wsUrl, nil)
 	if err != nil {
 		log.Fatal("Dial error:", err)
@@ -54,7 +54,7 @@ func Test_Ws(t *testing.T) {
 	defer conn.Close()
 
 	// Send a message to the server
-	err = conn.WriteMessage(websocket.TextMessage, []byte("Hello from Go client!"))
+	err = conn.WriteMessage(websocket.TextMessage, []byte(`{"event":"on-ack", "payload": "abc"}`))
 	if err != nil {
 		log.Println("Write error:", err)
 		return
