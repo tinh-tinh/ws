@@ -1,7 +1,6 @@
 package ws
 
 import (
-	"fmt"
 	"net/http"
 	"slices"
 
@@ -19,7 +18,7 @@ func initHandler(module core.Module) core.Controller {
 		// Your handler logic here
 		conn, err := gateway.Upgrade.Upgrade(w, r, nil)
 		if err != nil {
-			fmt.Println("Upgrade error:", err)
+			gateway.ErrorHandler(err)
 			return
 		}
 		defer conn.Close()
@@ -50,17 +49,24 @@ func initHandler(module core.Module) core.Controller {
 
 			// Handler
 			ctx := NewCtx(messageType, message, *gateway)
-			err = gateway.events[subscriberIdx].Handler(ctx)
+			res, err := gateway.events[subscriberIdx].Handler(ctx)
 			if err != nil {
 				gateway.ErrorHandler(err)
 				break
 			}
 
-			// Echo message back to client
-			err = conn.WriteMessage(messageType, msg)
-			if err != nil {
-				fmt.Println("Write error:", err)
-				break
+			if res != nil {
+				msg, err := gateway.Serializer(res)
+				if err != nil {
+					gateway.ErrorHandler(err)
+					break
+				}
+				// Echo message back to client
+				err = conn.WriteMessage(messageType, msg)
+				if err != nil {
+					gateway.ErrorHandler(err)
+					break
+				}
 			}
 		}
 	}))

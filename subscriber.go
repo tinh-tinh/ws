@@ -2,7 +2,7 @@ package ws
 
 import "github.com/tinh-tinh/tinhtinh/v2/core"
 
-type HandleFnc func(ctx Ctx) error
+type HandleFnc func(ctx Ctx) (*Message, error)
 
 type EventFnc struct {
 	Event   string

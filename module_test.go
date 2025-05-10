@@ -17,9 +17,9 @@ func Test_Ws(t *testing.T) {
 	eventGateway := func(module core.Module) core.Provider {
 		handler := ws.NewHandler(module)
 
-		handler.SubscribeMessage("on-ack", func(ctx ws.Ctx) error {
+		handler.SubscribeMessage("on-ack", func(ctx ws.Ctx) (*ws.Message, error) {
 			fmt.Println(ctx.GetMessage())
-			return nil
+			return ctx.Send("ok")
 		})
 
 		return handler

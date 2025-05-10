@@ -2,6 +2,7 @@ package ws
 
 type Ctx interface {
 	GetMessage() Message
+	Send(v any) (*Message, error)
 }
 
 type DefaultCtx struct {
@@ -20,4 +21,10 @@ func NewCtx(messageType int, message Message, config Config) Ctx {
 
 func (c *DefaultCtx) GetMessage() Message {
 	return c.message
+}
+
+func (c *DefaultCtx) Send(v any) (*Message, error) {
+	msg := c.message
+	msg.Payload = v
+	return &msg, nil
 }
